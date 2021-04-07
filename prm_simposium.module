@@ -1,0 +1,377 @@
+<?php
+/**
+ * @file PRM Simposiums
+ * @author Miguel Martínez <miguel01amd@gmail.com>
+ * @package PRM
+ * @info Módulo de registro/alta/asistencia a Simposium para marca médica.
+ * @vertion dev 1.0.0
+ */
+
+ // Load the custom library to use functions
+ module_load_include('inc', 'prm_simposium', 'prm_simposium');
+
+/**
+ * Implements hook_permission().
+ * Define the user perms to view admin content
+ * @return array (permisions)
+ */
+function prm_simposium_permission() {
+  $perm = array(
+    'admin simposium' => array(
+      'title'       => t('List of Simposiums'),
+      'description' => t('View and administer assistance list of simposiums'),
+    ),
+    'hrs simposium' => array(
+      'title'       => t('Capture hrs simposium'),
+      'description' => t('Configuration of diference in hrs of simposiums'),
+    ),
+  );
+  return $perm;
+}
+
+/**
+ * Implements hook_menu().
+ * Define URLS to admin pages of Certificates
+ * @return array (paths)
+ */
+function prm_simposium_menu() {
+  $items = [];
+  // Default admin page to save the diferent hours
+  $items['admin/config/prm-simposium/config'] = array(
+    'title'            => t('Configuración de Hrs'),
+    'description'      => t('Configuracion de diferencia de Hrs para lista de Simposiums'),
+    'page callback'    => 'drupal_get_form',
+    'page arguments'   => array('prm_simposium_hours_form'),
+    'access arguments' => array('hrs simposium'),
+    'file'             => 'prm_simposium.admin.inc',
+  );
+  // List of next simposiums to users view
+  $items['simposiums/info'] = array(
+    'title'            => t('Próximos Simposiums'),
+    'description'      => t('Lista de próximos simposiums'),
+    'page callback'    => 'prm_simposium_page_empty',
+    'access arguments' => array('access content'),
+  );
+  // Action to user register or delete register on simposium
+  $items['simposiums/register/%/%/%'] = array(
+    'title'            => t('Registro de Usuario'),
+    'description'      => t('Actualización de status de usuario'),
+    'page callback'    => 'prm_simposium_ownupdate',
+    'page arguments'   => array(2,3,4),
+    'access arguments' => array('access content'),
+    'file'             => 'prm_simposium.inc',
+  );
+  // List of next simposiums to users view
+  $items['simposiums/mis-certificados'] = array(
+    'title'            => t('Certificados de Asistencia Disponibles'),
+    'description'      => t('Certificados para desgargar'),
+    'page callback'    => 'prm_simposium_page_empty',
+    'access arguments' => array('access content'),
+  );
+  // List of Simposiums on site
+  $items['simposiums/list'] = array(
+    'title'            => t('Lista de Simposiums'),
+    'description'      => t('Acceso a lista de simposiums habilitados'),
+    'page callback'    => 'prm_simposium_page_empty',
+    'access arguments' => array('admin simposium'),
+  );
+  // Callback to download CSV of list
+  $items['simposiums/list/export/%'] = array(
+    'title'            => t('Descarga de Archivo'),
+    'description'      => t('Descarga de archivo'),
+    'page callback'    => 'prm_simposium_exportlist',
+    'page arguments'   => array(3),
+    'access arguments' => array('hrs simposium'),
+    'file'             => 'prm_simposium.inc',
+  );
+  // List of Simposiums on site
+  $items['simposiums/asistencia/%'] = array(
+    'title'            => t('REGISTRO DE ASISTENCIA'),
+    'description'      => t('Acceso a lista de simposiums habilitados'),
+    'page callback'    => 'prm_simposium_page_empty',
+    'access arguments' => array('admin simposium'),
+  );
+  // URL to add user assistance
+  $items['admin/config/prm-simposium/config/add/%/%'] = array(
+    'title'            => t('Confirmación de Asistencia'),
+    'description'      => t('Confirmación de registro de asistencia de asuario a Simposio'),
+    'page callback'    => 'drupal_get_form',
+    'page arguments'   => array('prm_simposium_adduser_form', 5, 6),
+    'access arguments' => array('admin simposium'),
+    'file'             => 'prm_simposium.admin.inc',
+  );
+  // URL to delete user assistance
+  $items['admin/config/prm-simposium/config/delete/%/%'] = array(
+    'title'            => t('Confirmación de Actualización'),
+    'description'      => t('Confirmación de borrado de asistencia de asuario a Simposio'),
+    'page callback'    => 'drupal_get_form',
+    'page arguments'   => array('prm_simposium_deleteuser_form', 5, 6),
+    'access arguments' => array('admin simposium'),
+    'file'             => 'prm_simposium.admin.inc',
+  );
+
+  return $items;
+}
+
+/**
+ * Callback to create page empty.
+ */
+function prm_simposium_page_empty() {
+  return '';
+}
+
+/**
+ * Implements hook_block_info().
+ * Define the blocks to site
+ */
+function prm_simposium_block_info() {
+  $blocks = [];
+  // Block of all simposiums. Expired and not expired
+  $blocks["simposiums_block"] = array(
+    'info'       => t('Simposiums - List'),
+    'weight'     => 1,
+    'status'     => TRUE,
+    'region'     => 'content',
+    'cache'      => DRUPAL_NO_CACHE,
+    'visibility' => BLOCK_VISIBILITY_LISTED,
+    'pages'      => 'simposiums/list',
+  );
+  // Block of list assistence
+  $blocks["simposiums_assist"] = array(
+    'info'       => t('Simposiums - Asistencia'),
+    'weight'     => 1,
+    'status'     => TRUE,
+    'region'     => 'content',
+    'cache'      => DRUPAL_NO_CACHE,
+    'visibility' => BLOCK_VISIBILITY_LISTED,
+    'pages'      => 'simposiums/asistencia/*',
+  );
+  // Block to user see the nexts simposiums
+  $blocks["simposiums_next"] = array(
+    'info'       => t('Próximos - Simposiums'),
+    'weight'     => 1,
+    'status'     => TRUE,
+    'region'     => 'content',
+    'cache'      => DRUPAL_NO_CACHE,
+    'visibility' => BLOCK_VISIBILITY_LISTED,
+    'pages'      => 'simposiums/info',
+  );
+  // Show the simposiums to download the certified of assistence by user
+  $blocks["simposiums_own"] = array(
+    'info'       => t('Certificados - Simposiums'),
+    'weight'     => 1,
+    'status'     => TRUE,
+    'region'     => 'content',
+    'cache'      => DRUPAL_NO_CACHE,
+    'visibility' => BLOCK_VISIBILITY_LISTED,
+    'pages'      => 'simposiums/mis-certificados',
+  );
+
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ * Prepare content to disply block
+ */
+function prm_simposium_block_view($delta = '') {
+  $block = [];
+  switch ($delta) {
+    case 'simposiums_block':
+      if(user_access('admin simposium')){
+        $block['content'] = prm_simposium_getlist();
+      }
+      else {
+        $block['content'] = '';
+      }
+      break;
+    case 'simposiums_assist':
+      if(user_access('admin simposium')){
+        $block['content'] = prm_simposium_registerassist();
+      }
+      else {
+        $block['content'] = '';
+      }
+      break;
+    case 'simposiums_next':
+      $block['content'] = prm_simposium_next();
+      break;
+    case 'simposiums_own':
+      $block['content'] = prm_simposium_own();
+      break;
+  } // endswitch
+
+  return $block;
+}
+
+/**
+ * Implements hook_theme().
+ * Definte the template to block display
+ */
+function prm_simposium_theme($existing, $type, $theme, $path) {
+  $theme = [];
+  $theme['simposiums_block']  = [ 'template' => 'templates/simposio-list' ];
+  $theme['simposiums_assist'] = [ 'template' => 'templates/register-simposio' ];
+  $theme['simposiums_next']   = [ 'template' => 'templates/next-simposiums' ];
+  $theme['simposiums_own']    = [ 'template' => 'templates/my-certifieds' ];
+
+  return $theme;
+}
+
+/**
+ * Search on simposiums the next date to show on register form
+ * @return array ($simposiums) button(s) to show
+ * @see prm_register
+ *   - prm_register_form_user_register_form_alter()
+ *   - prm_register_user_presave()
+ */
+function prm_simposium_display() {
+  // Consult the simposiums
+  $qry = db_select('node', 'n');
+  $qry->innerJoin('field_data_field_date', 'fd', 'fd.entity_id = n.nid');
+  $qry->innerJoin('field_data_field_simposium_limit', 'fsl', 'fsl.entity_id = n.nid');
+  $qry->leftJoin('field_data_field_reference', 'fr', 'fr.entity_id = n.nid');
+  $qry->condition('n.type', 'simposiums', '=');
+  $qry->condition('n.status', 1, '=');
+  $qry->condition('fd.entity_type', 'node', '=');
+  $qry->condition('fsl.entity_type', 'node', '=');
+  $qry->fields('n', ['title', 'nid']);
+  $qry->fields('fd', ['field_date_value']);
+  $qry->fields('fsl', ['field_simposium_limit_value']);
+  $qry->fields('fr', ['field_reference_url']);
+  $qry->orderBy('fd.field_date_value', 'ASC');
+  $result = $qry->execute()->fetchAll();
+
+  if (!empty($result)) {
+    foreach ($result as $simp) {
+      // Validate the date of simposium
+      $validate = prm_simposium_refresh_date('date', $simp->field_date_value);
+
+      if ( $validate['validate'] == 1 ) {
+        // Validate the limit date to register on simposium
+        $limit = prm_simposium_refresh_date('date', $simp->field_simposium_limit_value);
+        // validación que aún está dentro de limites de display
+        if ( $limit['validate'] == 1 ) {
+          $url = '<a href="'.$simp->field_reference_url.'" target="_blank">Más información</a>';
+          $simposiums[$simp->nid] = $simp->title.'. <p><span class="fecha-simposium">Fecha: '.$validate['date'].' | '.$url.'<span></p>';
+        } // endif
+      } // endif
+    } // endforeach
+  } // endif
+
+  return $simposiums;
+}
+
+/**
+ * Implements hook_user_insert().
+ * After account was created, add the user on list_simposium if him register().
+ * @see prm_register_user_presave().
+ */
+function prm_simposium_user_insert(&$edit, $account, $category) {
+  if ( isset($edit['field_user_simposio']['und']) && !empty( $edit['field_user_simposio']['und']) ) {
+    foreach ($edit['field_user_simposio']['und'] as $value) {
+      // Add the user to table registers
+      try {
+        $insert = db_insert('list_simposium')
+          ->fields(array(
+              'simposium_uid'        => $account->uid,
+              'simposium_nid'        => $value['target_id'],
+              'simposium_assistence' => 0,
+              'date'                 => time(),
+              'simposium_moderator'  => $account->uid,
+              'date_confirm'         => time(),
+            ))
+          ->execute();
+      }
+      catch (Exception $e) {
+        watchdog("WATCHDOG_ERROR", t('Error al guardar registro: '.$e));
+      } // endexception
+
+    } // endforeach
+  } // endif
+}
+
+/**
+ * Validate the limit or date of simposium
+ * @param
+ *  String ($action) close | date => Limit of register assistence (cron) or Date of simposium.
+ *  date ($date) Date to validate.
+ * @return array ($validate)
+ *   $validate['validate'] = 1 | 0 (TRUE or FALSE of date)
+ *   $validate['date']     = date return, original or change with the diference hrs variable
+ */
+function prm_simposium_refresh_date($action, $date) {
+  $validate = [ 'validate' => 0 ];
+  // Load the diference variable of hours and current date
+  $diff     = variable_get('simposiums_hrs', '');
+  $c_date   = date("Y-m-d H:i:s");
+
+  // Validate limit date to unpublish node
+  if ($action == 'close') {
+    if ($diff != 0) {
+      $new_date = strtotime($diff, strtotime($date));
+      $date     = date('Y-m-d H:i:s', $new_date);
+    } // endif
+
+    $close = variable_get('simposiums_close', '');
+    $limit = strtotime('+'.$close.' hour', strtotime($date)) ;
+    $limit = date('Y-m-d H:i:s' , $limit);
+
+    if ($c_date > $limit) {
+      $validate['validate'] = 1;
+    }// endif
+  } // endif
+
+  // Validate the date
+  if ($action == 'date') {
+    if ($diff != 0) {
+      $new_date = strtotime($diff, strtotime($date));
+      $date     = date ('Y-m-d H:i:s', $new_date);
+    } // endif
+    if ($c_date < $date) {
+      $validate['validate'] = 1;
+    } // endif
+    $date = strtotime($date);
+    $date = date('Y-m-d H:i', $date);
+    $validate['date'] = $date;
+  } // endif
+
+  return $validate;
+}
+
+/**
+ * Implements hook_cron().
+ * Each simposiums to unplibish all with expired date
+ */
+function prm_simposium_cron() {
+  // Consult the simposiums
+  $qry = db_select('node', 'n');
+  $qry->innerJoin('field_data_field_date', 'fd', 'fd.entity_id = n.nid');
+  $qry->condition('n.type', 'simposiums', '=');
+  $qry->condition('n.status', 1, '=');
+  $qry->condition('fd.entity_type', 'node', '=');
+  $qry->fields('n', ['title', 'nid']);
+  $qry->fields('fd', ['field_date_value']);
+  $result = $qry->execute()->fetchAll();
+
+  if (!empty($result)) {
+    foreach ($result as $node) {
+      // Consult date of simposiums
+      $validate = prm_simposium_refresh_date('close', $node->field_date_value);
+      // Compare the simposium date with current date
+      if ($validate['validate'] == 1) {
+        try {
+          // Unpublished node with expiration date
+          $update         = node_load($node->nid);
+          $update->status = 0;
+          node_save($update);
+        }
+        catch (Exception $e) {
+          watchdog("WATCHDOG_ERROR", t('Error al actualizar nodo: '.$e));
+        } // endexception
+      } // endif
+
+    } // endforeach
+  } // endif
+
+}
