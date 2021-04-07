@@ -1,6 +1,6 @@
 name = PRM Simposiums
 description = Registro de asistencia de Simposiums.
 package = 'PRM'
+configure = admin/config/prm-simposium/config
 version = 0.1
 core = 7.x
-configure = admin/config/prm-simposium/config

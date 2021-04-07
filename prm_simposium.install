@@ -1,0 +1,290 @@
+<?php
+/**
+ * @file
+ * Install, update and uninstall functions to PRM - Simposiums
+ */
+
+/**
+ * Implements hook_field_schema().
+ * Create the simpusiums table to register the assistance of simposium
+ */
+function prm_simposium_schema() {
+  $schema["list_simposium"] = array(
+    'description' => 'Tabla de asistencia en simposiums',
+    'fields' => array(
+      'id' => array(
+        'type'        => 'serial',
+        'unsigned'    => TRUE,
+        'not null'    => TRUE,
+        'description' => 'Register ID'
+      ),
+      'simposium_uid' => array(
+        'type'        => 'int',
+        'not null'    => TRUE,
+        'default'     => '0',
+        'description' => 'ID de usuario registrado en simposium',
+      ),
+      'simposium_nid' => array(
+        'type'        => 'int',
+        'not null'    => TRUE,
+        'default'     => '0',
+        'description' => 'NID de curso completado',
+      ),
+      'simposium_assistence' => array(
+        'type'        => 'int',
+        'not null'    => TRUE,
+        'default'     => '0',
+        'description' => 'Registro de asistencia la Simposium (0 = default, 1 = Asistencia Registrada)',
+      ),
+      'date' => array(
+        'type'        => 'int',
+        'not null'    => TRUE,
+        'default'     => '0',
+        'description' => 'Unixtime de fecha de registro de usuario',
+      ),
+      'simposium_moderator' => array(
+        'type'        => 'int',
+        'not null'    => TRUE,
+        'default'     => '0',
+        'description' => 'ID de usuario moderador de simposium',
+      ),
+      'date_confirm' => array(
+        'type'        => 'int',
+        'not null'    => TRUE,
+        'default'     => '0',
+        'description' => 'Unixtime de actualizacion de registro de usuario',
+      ),
+    ),
+    'primary key' => array('id'),
+  );
+
+  return $schema;
+}
+
+/**
+ * Implements hook_install().
+ * Install the new content type of upload simposiums
+ * Create and associate the fields to new content type
+ */
+function prm_simposium_install() {
+  // Aarray to news content types
+  $content_types = array(
+    'simposiums' => array(
+      'type'        => 'simposiums',
+      'name'        => t('Registro de Simposium'),
+      'description' => t('Use para cargar próximos simposiums'),
+      'title_label' => t('Title'),
+      'base'        => 'node_content',
+      'custom'      => TRUE,
+    ),
+    'certified_simposiums' => array(
+      'type'        => 'certified_simposiums',
+      'name'        => t('Certificados de Asistencia Simposiums'),
+      'description' => t('Use para cargar template de certificados de asistencia a simposiums'),
+      'title_label' => t('Title'),
+      'base'        => 'node_content',
+      'custom'      => TRUE,
+    ),
+  );//end content_types
+  foreach($content_types as $key => $content){
+    $node_type = node_type_set_defaults($content);
+    node_type_save($node_type);
+  }//end foreach
+
+  // Array to generate news fields on contents types
+  field_info_cache_clear();
+  $fields = array(
+    'field_img_simposium' => array(
+      'field_name' => 'field_img_simposium',
+      'type'       => 'file',
+    ),
+    'field_simposium_limit' => array(
+      'field_name' => 'field_simposium_limit',
+      'type'       => 'datetime',
+    ),
+    'field_simposium_related' => array(
+      'field_name' => 'field_simposium_related',
+      'type'       => 'entityreference',
+      'settings'   => array(
+        'target_type'      => 'node',
+        'handler_settings' => array('target_bundles' => array('simposiums')),
+      ),
+    ),
+    'field_user_simposio' => array(
+      'field_name' => 'field_user_simposio',
+      'type'       => 'entityreference',
+      'settings'   => array(
+        'target_type'      => 'node',
+        'handler_settings' => array('target_bundles' => array('simposiums')),
+      ),
+    ),
+  );
+
+  foreach($fields as $field) {
+    if( !field_info_field($field['field_name']) ){
+      field_create_field($field);
+    }//end if
+  }//end foreach
+
+
+  // Create instances to user field
+  $user_field = array(
+    'field_name'  => 'field_user_simposio',
+    'label'       => 'Simposiums Registrado',
+    'description' => 'Simposiums en los que se ha suscrito',
+    'entity_type' => 'user',
+    'bundle'      => 'user',
+    'widget'      => array(
+      'type' => 'options_select'
+    ),
+  );
+  field_create_instance($user_field);
+
+  // Array to associate a new instances on new contents type
+  $instances = array(
+    'simposiums' => array(
+      'field_content' => array(
+        'field_name'  => 'field_content',
+        'label'       => t('Descripción'),
+        'description' => t('Ingrese una breve descripción del Simposium a cargar'),
+        'required'    => FALSE,
+        'widget'      => array(
+          'type' => 'text_textarea'
+        ),
+      ),
+      'field_img_simposium' => array(
+        'field_name'  => 'field_img_simposium',
+        'label'       => 'Imagen referente al Simposium',
+        'description' => t('Cargue la imagen de referencia al Simposium'),
+        'required'    => TRUE,
+        'settings'    => array(
+          'file_directory'  => 'field/simposiums',
+          'file_extensions' => 'png gif jpg jpeg',
+          'max_filesize'    => '',
+          'max_resolution'  => '',
+          'min_resolution'  => '',
+          'alt_field'       => FALSE,
+          'title_field'     => '',
+        ),
+      ),
+      'field_date' => array(
+        'field_name'  => 'field_date',
+        'label'       => t('Fecha de Simposium'),
+        'description' => t('Fecha en que se realizará el Simposium'),
+        'required'    => TRUE,
+        'widget'      => array(
+          'type'   => 'date_popup',
+          'modulo' => 'date',
+        ),
+      ),
+      'field_simposium_limit' => array(
+        'field_name'  => 'field_simposium_limit',
+        'label'       => t('Limite de Registro'),
+        'description' => t('Ingrese la fecha y hora límite para que un usuario pueda registrarse en el simposium'),
+        'required'    => TRUE,
+        'widget'      => array(
+          'type'   => 'date_popup',
+          'modulo' => 'date',
+        ),
+      ),
+      'field_reference' => array(
+        'field_name'  => 'field_reference',
+        'label'       => t('Fuente'),
+        'description' => t('Ingrese la url para consultar más información del simposio'),
+        'required'    => TRUE,
+        'widget'      => array(
+          'type'   => 'text',
+        ),
+      ),
+    ),
+    'certified_simposiums' => array(
+      'body' => array(
+        'field_name'  => 'body',
+        'label'       => t('Template de Certificado'),
+        'description' => t('Ingrese el template HTML del certificado'),
+        'required'    => TRUE,
+        'widget'      => array(
+          'type' => 'text_textarea'
+        ),
+      ),
+      'field_simposium_related' => array(
+        'field_name'  => 'field_simposium_related',
+        'label'       => 'Simposio Relacionado',
+        'description' => 'Simposio al que pertenece el certificado',
+        'required'    => TRUE,
+        'widget'      => array(
+          'type' => 'options_select'
+        ),
+      ),
+    ),
+  );//end instances of content types
+
+  // Create instances of own content type
+  foreach ($instances as $type => $fields) {
+    foreach ($fields as $field) {
+      $field['entity_type'] = 'node';
+      $field['bundle']      = $type;
+      field_create_instance($field);
+    }//end foreach
+  }//end foreach
+
+}
+
+/**
+ * Implements hook_uninstall().
+ * Delete on DB the content type, fields and nodes after unistall the module
+ */
+function prm_simposium_uninstall() {
+  $nids     = [];
+  $contents = [ 'simposiums', 'certified_simposiums' ];
+
+  // Delete instance of user field
+  if ($user_instance = field_info_instance('user', 'field_user_simposio', 'user')) {
+    field_delete_instance($user_instance);
+    // Delete user field
+    field_delete_field('field_user_simposio');
+    field_purge_batch(1000);
+  } // endif
+
+  // Create consult to delete all nodes of content types of module
+  $qry = db_select('node', 'n');
+  $qry->condition(db_or()
+      ->condition('n.type', 'simposiums', '=')
+      ->condition('n.type', 'certified_simposiums', '='));
+  $qry->fields('n', ['nid', 'type']);
+  $results = $qry->execute()->fetchAll();
+
+  if (!empty($results)) {
+    foreach ($results as $node) {
+      $nids[] = $node->nid;
+    } // endforeach
+    // Delete all nids result by NID
+    node_delete_multiple($nids);
+  } // endif
+
+  foreach($contents as $content){
+    foreach( field_info_instances('node', $content) as $field_name => $instance ) {
+      if(field_info_field($field_name)){
+        field_delete_instance($instance);
+      }//end if
+    }//end foreach
+    node_type_delete( (string) $content);
+  }//end foreach
+
+  // Delete the custom table
+  try {
+    // Delete on DB the table of assistence of simposiums
+    db_drop_table('list_simposium');
+    drupal_set_message(t('Se limpió correctamente la Base de Datos de Asistencia.'), 'status');
+  }
+  catch (Exception $e) {
+    watchdog("WATCHDOG_ERROR", t('Error al elimiar registro de Asistencia: '.$e));
+    drupal_set_message('Error uninstall list_simposium: '.$e, 'error');
+  } // endexception
+
+  // Deleted temporal variables
+  variable_del('simposiums_close');
+  variable_del('simposiums_hrs');
+  
+  field_purge_batch(1000);
+}
