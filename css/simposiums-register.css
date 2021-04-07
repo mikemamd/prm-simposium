@@ -1,0 +1,223 @@
+h2.main-title {
+  display: none !important;
+}
+
+/* Simposiums en área de registro */
+/* Simposiums en área de registro */
+
+.user-simposiums {
+  border: 1px solid #2f95f7;
+  border-radius: 3px; 
+  margin-bottom: 25px;
+}
+
+.user-simposiums > h2 {
+  border-bottom: none !important;
+  text-transform: uppercase;
+}
+
+.user-simposiums span.fecha-simposium {
+  color: #2ac08d;
+  font-weight: 600;
+}
+
+.user-simposiums span.fecha-simposium a {
+  color: #2f95f7;
+  text-decoration: underline;
+  font-family: 'Open Sans', sans-serif;
+}
+
+.user-simposiums p.simposium-footer {
+  font-family: 'Open Sans', sans-serif;
+  font-style: italic;
+  color: #999;
+  margin: 20px auto 40px;
+  max-width: 680px;
+}
+
+.user-simposiums input[type=checkbox] {
+  -webkit-appearance: none;
+  border-radius: 3px;
+  border: 1px solid #2f95f7;
+  float: left;
+  height: 18px;
+  margin-bottom: 0 !important;
+  outline: transparent;
+  position: relative;
+  width: 18px !important;
+  margin-left: 30px;
+}
+
+.user-simposiums input[type=checkbox]:checked {
+  background-color: #2f95f7;
+  color: #FFF;
+}
+
+.user-simposiums input[type=checkbox]:checked:after {
+  color: #FFF;
+  content: '\2714';
+  left: 0;
+  top: 0;
+  font-size: 20px;
+  line-height: 0.75;
+  position: absolute;
+}
+
+.user-simposiums .form-item {
+  margin-bottom: -25px;
+}
+
+
+/* Lista de Simposiums */
+/* Lista de Simposiums */
+
+.simposiums-records > h2 {
+  border-bottom: 1px solid #2f95f7;
+  color: #2f95f7;
+  float: none;
+  font-size: 16px;
+  font-weight: bold;
+  padding: 20px 0;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.simposiums-records table.simposiums-records {
+  margin-bottom: 106px !important;
+}
+
+.simposiums-records table.simposiums-records td {
+  border: none !important;
+}
+
+.simposiums-records table.simposiums-records td {
+  border-top: 1px solid #dee2e6 !important;
+}
+
+.simposiums-records tr.table-success {
+  background: #33cccc;
+}
+
+.simposiums-records tr.table-danger {
+  background: #32383e;
+}
+
+.simposiums-records tr.tr-confirm {
+  font-weight: bold;
+}
+
+.simposiums-records tr.tr-confirm td {
+  color: #333;
+}
+
+.simposiums-records tr.table-success td, .simposiums-records tr.table-danger td {
+  color: #FFF;
+}
+
+/* Próximos Simposiums */
+/* Próximos Simposiums */
+.next-simposiums {
+  text-align: center;
+}
+
+.next-simposiums .card {
+  position: relative;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: inline-flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  min-width: 0;
+  word-wrap: break-word;
+  background-color: #fff;
+  background-clip: border-box;
+  border: 1px solid rgba(0,0,0,.125);
+  border-radius: .25rem;
+  background-color: #fff;
+  background-clip: border-box;
+  border-radius: 1.3rem;
+  width: 30%;
+  box-shadow: 1px 1px 7px #999;
+  margin-left: 35px;
+  margin-bottom: 35px;
+}
+
+.next-simposiums .card-true {
+  background-color: #b8daff;
+}
+
+.next-simposiums .card .card-body {
+  -webkit-box-flex: 1;
+  -ms-flex: 1 1 auto;
+  flex: 1 1 auto;
+  padding: 1.25rem;
+  height: 190px;
+}
+
+.next-simposiums .card .card-body > h5  {
+  color: #000 !important;
+  font-size: 14px !important;
+  font-weight: bold;
+}
+
+.next-simposiums .card img {
+  vertical-align: middle;
+  border-style: none;
+  border-top-left-radius: calc(.25rem - 1px);
+  border-top-right-radius: calc(.25rem - 1px);
+  height: auto !important;
+  width: 100% !important;  
+  display: block;
+  opacity: 0.9;
+  border-radius: 1.3rem 1.3rem 0 0;
+}
+
+.next-simposiums .card .card-body p.card-text,
+.next-simposiums .card .card-body h5.card-title, 
+.next-simposiums .card .card-body p.card-date {
+  text-align : justify;
+}
+
+.next-simposiums .card .card-body p.card-date {
+  font-family: 'Open Sans', sans-serif;
+  margin-top: -20px;
+  color: #333;
+}
+
+.next-simposiums .card .card-body p.card-text {
+  font-size: 13px !important;
+  height: 70px;
+}
+
+.next-simposiums .card .card-body > a.del-reg  {
+  color: #000;
+  font-style: italic;
+  text-decoration: underline red;
+  margin-left: 20px;
+}
+
+.next-simposiums .card .card-body > span.register {
+  color: #FFF;
+}
+
+.next-simposiums .card .card-body span.close-register {
+  display: inline-block;
+  margin-bottom: 0;
+  font-weight: normal;
+  text-align: center;
+  vertical-align: middle;
+  border: 1px solid transparent;
+  white-space: nowrap;
+  padding: 6px 12px;
+  font-size: 14px;
+  line-height: 1.42857143;
+  border-radius: 4px;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  color: #ffffff;
+  background-color: #c6c8ca;
+}
